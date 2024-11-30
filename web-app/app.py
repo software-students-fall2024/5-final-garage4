@@ -15,6 +15,7 @@ from collections import defaultdict
 
 app = Flask(__name__)
 
+
 # Download NLTK data for sentence tokenization
 nltk.download("punkt")
 
