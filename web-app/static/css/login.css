@@ -1,67 +1,111 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #4caf50;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    box-sizing: border-box;
-}
-
+/* Reset styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-.login-container {
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #74ebd5, #acb6e5); /* 渐变背景色 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.login-box {
     background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    max-width: 100%;
+    padding: 40px 30px;
+    border-radius: 15px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+    width: 350px;
     text-align: center;
 }
 
-.login-container h2 {
-    margin-bottom: 20px;
-    font-size: 24px;
+.login-box h2 {
+    margin-bottom: 30px;
     color: #333;
+    font-size: 24px;
 }
 
 .input-group {
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-.input-group label {
-    display: block;
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 5px;
+    position: relative;
+    margin-bottom: 30px;
 }
 
 .input-group input {
     width: 100%;
     padding: 10px;
+    font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    border-color: #74ebd5;
+    box-shadow: 0 0 5px rgba(116, 235, 213, 0.5);
+}
+
+.input-group label {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    background: #fff;
+    padding: 0 5px;
     font-size: 14px;
+    color: #aaa;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: -8px;
+    font-size: 12px;
+    color: #74ebd5;
 }
 
 button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
+    font-size: 16px;
     border: none;
     border-radius: 5px;
-    background-color: #007bff;
+    background-color: #74ebd5;
     color: white;
-    font-size: 16px;
     cursor: pointer;
+    transition: background 0.3s ease;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #5cc7bd;
+}
+
+.footer-text {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+}
+
+.footer-text a {
+    color: #74ebd5;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.footer-text a:hover {
+    text-decoration: underline;
 }
