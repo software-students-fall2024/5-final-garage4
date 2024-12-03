@@ -3,83 +3,170 @@
 <head>
   <meta charset="UTF-8">
   <title>AI Sentence Checker</title>
+  <!-- Include Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+  <!-- Custom CSS -->
   <link rel="stylesheet" href="../static/css/index.css">
-
-  <!-- Include D3.js and plugins -->
+  <!-- Include D3.js and D3 Cloud -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.js"></script>
-
   <!-- Include Google Fonts -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
 </head>
 <body>
-  <div class="container">
-      <header>
-          <h1>AI Sentence Checker</h1>
-          <p>Enter your text to perform sentiment analysis and more.</p>
-      </header>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">AI Sentence Checker</a>
+    </div>
+  </nav>
 
-      <div class="content">
-          <div class="input-section">
-              <textarea id="sentenceInput" placeholder="Start writing here..."></textarea>
-              <br>
-              <button onclick="analyzeSentence()">Analyze Sentiment</button>
-              <button id="speakButton" onclick="startDictation()">🎤 Speak</button>
-              <p id="uploadMessage" class="hidden">Analyzing your text, please wait...</p>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Main Content -->
+      <main class="col-md-12 ms-sm-auto col-lg-12 px-md-4">
+        <!-- Input Section -->
+        <div class="py-4">
+          <h2>Enter Your Text</h2>
+          <p>Perform sentiment analysis and more.</p>
+          <div class="mb-3">
+            <textarea id="sentenceInput" class="form-control" rows="5" placeholder="Start writing here..."></textarea>
           </div>
+          <button class="btn btn-success me-2" onclick="analyzeSentence()">Analyze Sentiment</button>
+          <button id="speakButton" class="btn btn-primary" onclick="startDictation()">🎤 Speak</button>
+          <p id="uploadMessage" class="mt-3 text-muted d-none">Analyzing your text, please wait...</p>
+        </div>
 
-          <!-- Result Sections -->
-          <div class="result-section hidden">
-              <h2>Analysis Results</h2>
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="text-center d-none">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
 
-              <div class="summary-section">
-                  <h3>Summary</h3>
+        <!-- Results Section -->
+        <div class="results-section d-none">
+          <h2>Analysis Results</h2>
+          <!-- Dashboard Grid -->
+          <div class="row">
+            <!-- Summary Card -->
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  Summary
+                </div>
+                <div class="card-body">
                   <p id="summaryText"></p>
+                </div>
               </div>
-
-              <div class="topics-section">
-                  <h3>Topics</h3>
+            </div>
+            <!-- Topics Card -->
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  Topics
+                </div>
+                <div class="card-body">
                   <div id="topics"></div>
+                </div>
               </div>
-
-              <div class="emotions-section">
-                  <h3>Overall Emotions</h3>
+            </div>
+            <!-- Overall Emotions Card -->
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  Overall Emotions
+                </div>
+                <div class="card-body">
                   <div id="overallEmotions"></div>
+                </div>
               </div>
-
-              <div class="sentiment-trend-section">
-                  <h3>Sentiment Trend</h3>
+            </div>
+            <!-- Sentiment Trend Card -->
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  Sentiment Trend
+                </div>
+                <div class="card-body">
                   <div id="sentimentTrend"></div>
+                </div>
               </div>
-
-              <div class="sentiment-intensity-section">
-                  <h3>Sentiment Intensity per Sentence</h3>
+            </div>
+            <!-- Sentiment Intensity Card -->
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  Sentiment Intensity per Sentence
+                </div>
+                <div class="card-body">
                   <div id="sentimentIntensity"></div>
+                </div>
               </div>
-
-              <div class="sentiment-distribution-section">
-                  <h3>Sentiment Distribution</h3>
+            </div>
+            <!-- Sentiment Distribution Card -->
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  Sentiment Distribution
+                </div>
+                <div class="card-body">
                   <div id="sentimentDistribution"></div>
+                </div>
               </div>
-
-              <div class="emotional-shifts-section">
-                  <h3>Emotional Shifts</h3>
+            </div>
+            <!-- Emotional Shifts Card -->
+            <div class="col-md-12 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  Emotional Shifts
+                </div>
+                <div class="card-body">
                   <div id="emotionalShifts"></div>
+                </div>
               </div>
-
-              <!-- Keep NER Table Outcome -->
-              <div class="entities-section">
-                  <h3>Named Entity Recognition</h3>
+            </div>
+            <!-- Entities Card -->
+            <div class="col-md-12 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  Named Entity Recognition
+                </div>
+                <div class="card-body">
                   <div id="entities"></div>
+                </div>
               </div>
-
-              <div class="redo-btn-container">
-                  <button onclick="redoAnalysis()">Redo Analysis</button>
-              </div>
+            </div>
           </div>
-      </div>
+          <!-- Redo Analysis Button -->
+          <div class="text-center my-4">
+            <button class="btn btn-danger" onclick="redoAnalysis()">Redo Analysis</button>
+          </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+          <div id="liveToast" class="toast hide" role="alert" data-bs-delay="5000">
+            <div class="toast-header">
+              <strong class="me-auto">Notification</strong>
+              <small>Just now</small>
+              <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastBody">
+              <!-- Toast message goes here -->
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
 
+  <!-- Include Bootstrap JS and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom JS -->
   <script src="../static/app.js"></script>
 </body>
 </html>

@@ -3,15 +3,18 @@
 // Function to analyze the input sentence
 function analyzeSentence() {
     const sentenceInput = document.getElementById('sentenceInput');
-    const sentence = sentenceInput.value.trim(); // Trim whitespace
+    const sentence = sentenceInput.value.trim();
 
     if (!sentence) {
-        alert("Please enter some text before analyzing.");
+        showToast("Please enter some text before analyzing.");
         return;
     }
 
     const uploadMessage = document.getElementById('uploadMessage');
-    uploadMessage.classList.remove('hidden');
+    uploadMessage.classList.remove('d-none');
+
+    // Show loading spinner
+    document.getElementById('loadingSpinner').classList.remove('d-none');
 
     fetch('/checkSentiment', {
         method: 'POST',
@@ -33,12 +36,11 @@ function analyzeSentence() {
     })
     .catch(error => {
         console.error('Error:', error);
-        uploadMessage.classList.add('hidden'); // Hide upload message on error
-        alert(error.message);
+        uploadMessage.classList.add('d-none'); // Hide upload message on error
+        document.getElementById('loadingSpinner').classList.add('d-none'); // Hide loading spinner
+        showToast(error.message);
     });
 }
-
-
 
 let recognition;
 let recognizing = false;
@@ -47,15 +49,15 @@ function startDictation() {
     const speakButton = document.getElementById("speakButton");
 
     if (!('webkitSpeechRecognition' in window)) {
-        alert("Your browser does not support speech recognition. Please try Chrome.");
+        showToast("Your browser does not support speech recognition. Please try Chrome.");
         return;
     }
 
     if (!recognition) {
         // Initialize speech recognition
         recognition = new webkitSpeechRecognition();
-        recognition.continuous = false; // Set to false to stop when user stops speaking
-        recognition.interimResults = false; // Set to false to get final results only
+        recognition.continuous = false; // Stop when user stops speaking
+        recognition.interimResults = false;
         recognition.lang = "en-US";
 
         recognition.onstart = function () {
@@ -90,25 +92,13 @@ function startDictation() {
     }
 }
 
-
-function startRecognition(button) {
-  recognition.start();
-  isRecording = true;
-  button.innerText = "Recording..."; // Update button text to "Recording..."
-}
-
-function stopRecognition(button) {
-  recognition.stop();
-  isRecording = false;
-  button.innerText = "🎤 Speak"; // Update button text back to "🎤 Speak"
-}
-
 // Function to fetch analysis with retries
 function fetchAnalysisWithRetry(requestId, retries) {
     if (retries <= 0) {
         console.error("Failed to retrieve analysis after multiple attempts");
-        alert("Analysis failed or is taking too long. Please try again later.");
-        document.getElementById('uploadMessage').classList.add('hidden');
+        showToast("Analysis failed or is taking too long. Please try again later.");
+        document.getElementById('uploadMessage').classList.add('d-none');
+        document.getElementById('loadingSpinner').classList.add('d-none');
         return;
     }
 
@@ -130,26 +120,27 @@ function fetchAnalysisWithRetry(requestId, retries) {
                 } else {
                     // Pass the data to visualization functions
                     visualizeResults(data);
-                    document.getElementById('uploadMessage').classList.add('hidden'); // Hide upload message once results are available
+                    document.getElementById('uploadMessage').classList.add('d-none'); // Hide upload message
+                    document.getElementById('loadingSpinner').classList.add('d-none'); // Hide loading spinner
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert(error.message);
-                document.getElementById('uploadMessage').classList.add('hidden');
+                showToast(error.message);
+                document.getElementById('uploadMessage').classList.add('d-none');
+                document.getElementById('loadingSpinner').classList.add('d-none');
             });
     }, 5000);  // Retry interval set to 5 seconds
 }
 
-
 // Function to visualize all results
 function visualizeResults(data) {
-    // Hide the upload message
-    const uploadMessage = document.getElementById('uploadMessage');
-    uploadMessage.classList.add('hidden');
+    // Hide the upload message and loading spinner
+    document.getElementById('uploadMessage').classList.add('d-none');
+    document.getElementById('loadingSpinner').classList.add('d-none');
 
     // Show the results section
-    document.querySelector('.result-section').classList.remove('hidden');
+    document.querySelector('.results-section').classList.remove('d-none');
 
     // Visualization functions
     displaySummary(data);
@@ -161,7 +152,6 @@ function visualizeResults(data) {
     visualizeEmotionalShifts(data);
     visualizeEntities(data);
 }
-
 
 // Function to display the summary text
 function displaySummary(data) {
@@ -185,8 +175,9 @@ function visualizeTopics(data) {
         words = words.concat(wordWeights);
     });
 
-    // Set dimensions
-    const width = 500;
+    // Get container dimensions
+    const container = document.getElementById('topics');
+    const width = container.offsetWidth;
     const height = 300;
 
     // Remove any existing SVG
@@ -220,7 +211,6 @@ function visualizeTopics(data) {
     }
 }
 
-
 // Function to visualize overall emotions using a pie chart
 function visualizeOverallEmotions(data) {
     const sentences = data.sentences;
@@ -246,23 +236,25 @@ function visualizeOverallEmotions(data) {
         { sentiment: 'Neutral', count: sentimentCounts.Neutral }
     ];
 
-    // Set dimensions
-    const width = 400;
+    // Get container dimensions
+    const container = document.getElementById('overallEmotions');
+    const width = container.offsetWidth;
     const height = 300;
-    const radius = Math.min(width, height) / 2;
+    const radius = Math.min(width, height) / 2 - 20;
 
     // Remove existing SVG
     d3.select("#overallEmotions").selectAll("*").remove();
 
     const svg = d3.select("#overallEmotions").append("svg")
-        .attr("width", width + 200)  // Extra space for the legend
-        .attr("height", height)
-        .append("g")
-        .attr("transform", `translate(${radius}, ${height / 2})`);
+        .attr("width", width)
+        .attr("height", height);
+
+    const chartArea = svg.append("g")
+        .attr("transform", `translate(${width / 2 - 50}, ${height / 2})`); // Adjusted translation
 
     const color = d3.scaleOrdinal()
         .domain(pieData.map(d => d.sentiment))
-        .range(['#4caf50', '#f44336', '#9e9e9e']); // Green for Positive, Red for Negative, Grey for Neutral
+        .range(['#198754', '#dc3545', '#6c757d']); // Bootstrap colors
 
     const pie = d3.pie()
         .value(d => d.count);
@@ -270,7 +262,7 @@ function visualizeOverallEmotions(data) {
     const data_ready = pie(pieData);
 
     // Build the pie chart
-    svg.selectAll('whatever')
+    chartArea.selectAll('whatever')
         .data(data_ready)
         .enter()
         .append('path')
@@ -283,7 +275,7 @@ function visualizeOverallEmotions(data) {
         .style("stroke-width", "2px");
 
     // Add percentage labels
-    svg.selectAll('mySlices')
+    chartArea.selectAll('mySlices')
         .data(data_ready)
         .enter()
         .append('text')
@@ -293,15 +285,15 @@ function visualizeOverallEmotions(data) {
         })
         .attr("transform", d => `translate(${d3.arc()
             .innerRadius(0)
-            .outerRadius(radius)
+            .outerRadius(radius * 0.6)
             .centroid(d)})`)
         .style("text-anchor", "middle")
         .style("font-size", 14)
         .style("fill", "#fff");
 
-    // Add legend
+    // Add legend inside the SVG but within the container width
     const legend = svg.append("g")
-        .attr("transform", `translate(${radius + 20}, ${-height / 2 + 20})`);
+        .attr("transform", `translate(${width / 2 + radius - 30}, ${height / 2 - radius})`); // Adjusted position
 
     legend.selectAll(".legend-item")
         .data(pieData)
@@ -323,7 +315,6 @@ function visualizeOverallEmotions(data) {
         });
 }
 
-
 // Function to visualize sentiment trend using a line chart
 function visualizeSentimentTrend(data) {
     const sentimentTrend = data.sentiment_trend;
@@ -331,23 +322,25 @@ function visualizeSentimentTrend(data) {
     // Remove previous visualization
     d3.select("#sentimentTrend").selectAll("*").remove();
 
-    // Set dimensions and margins
-    const width = 600;
+    // Get container dimensions
+    const container = document.getElementById('sentimentTrend');
+    const width = container.offsetWidth;
     const height = 300;
-    const margin = { top: 20, right: 120, bottom: 50, left: 50 };
+    const margin = { top: 20, right: 20, bottom: 50, left: 50 };
 
     const svg = d3.select("#sentimentTrend")
         .append("svg")
-        .attr("width", width + margin.left + margin.right)
+        .attr("width", width)
         .attr("height", height + margin.top + margin.bottom);
 
+    const chartAreaWidth = width - margin.left - margin.right - 100; // Space for legend
     const chartArea = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Create scales
     const x = d3.scaleLinear()
         .domain(d3.extent(sentimentTrend, d => d.sentence_index))
-        .range([0, width]);
+        .range([0, chartAreaWidth]);
 
     const y = d3.scaleLinear()
         .domain([-1, 1])
@@ -358,7 +351,7 @@ function visualizeSentimentTrend(data) {
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x).ticks(10))
         .append("text")
-        .attr("x", width / 2)
+        .attr("x", chartAreaWidth / 2)
         .attr("y", 40)
         .attr("fill", "#000")
         .style("font-size", "14px")
@@ -381,7 +374,7 @@ function visualizeSentimentTrend(data) {
     chartArea.append("path")
         .datum(sentimentTrend)
         .attr("fill", "none")
-        .attr("stroke", "#4CAF50")
+        .attr("stroke", "#0d6efd") // Bootstrap primary color
         .attr("stroke-width", 2)
         .attr("d", d3.line()
             .x(d => x(d.sentence_index))
@@ -396,24 +389,24 @@ function visualizeSentimentTrend(data) {
         .attr("cx", d => x(d.sentence_index))
         .attr("cy", d => y(d.compound))
         .attr("r", 4)
-        .attr("fill", "#4CAF50");
+        .attr("fill", "#0d6efd");
 
-    // Add legend
-    const legend = svg.append("g")
-        .attr("transform", `translate(${width + margin.left + 20}, ${margin.top})`);
+    // Add legend inside the SVG but within the container width
+    const legend = chartArea.append("g")
+        .attr("transform", `translate(${chartAreaWidth + 20}, ${20})`);
 
     legend.append("rect")
         .attr("width", 18)
         .attr("height", 18)
-        .attr("fill", "#4CAF50");
+        .attr("fill", "#0d6efd");
 
     legend.append("text")
         .attr("x", 24)
         .attr("y", 14)
         .text("Compound Sentiment Score")
-        .style("font-size", 14);
+        .style("font-size", 14)
+        .attr("dy", ".35em");
 }
-
 
 // Function to visualize sentiment intensity per sentence using a bar chart
 function visualizeSentimentIntensity(data) {
@@ -421,26 +414,28 @@ function visualizeSentimentIntensity(data) {
     const sentenceIndices = sentences.map((_, i) => i + 1); // Start from 1
     const compoundScores = sentences.map(sentence => sentence.analysis.compound);
 
-    // Set dimensions
-    const width = 700;  // Increased width
-    const height = 400; // Increased height
-    const margin = { top: 20, right: 50, bottom: 70, left: 70 };
+    // Get container dimensions
+    const container = document.getElementById('sentimentIntensity');
+    const width = container.offsetWidth;
+    const height = 300;
+    const margin = { top: 20, right: 20, bottom: 70, left: 70 };
 
     // Remove existing SVG
     d3.select("#sentimentIntensity").selectAll("*").remove();
 
     const svg = d3.select("#sentimentIntensity")
         .append("svg")
-        .attr("width", width + margin.left + margin.right)
+        .attr("width", width)
         .attr("height", height + margin.top + margin.bottom);
 
+    const chartAreaWidth = width - margin.left - margin.right - 100; // Space for legend
     const chartArea = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Create scales
     const x = d3.scaleBand()
         .domain(sentenceIndices)
-        .range([0, width])
+        .range([0, chartAreaWidth])
         .padding(0.1);
 
     const y = d3.scaleLinear()
@@ -452,7 +447,7 @@ function visualizeSentimentIntensity(data) {
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x).tickValues(x.domain().filter((d, i) => !(i % 5))))
         .append("text")
-        .attr("x", width / 2)
+        .attr("x", chartAreaWidth / 2)
         .attr("y", 50)
         .attr("fill", "#000")
         .style("font-size", "14px")
@@ -480,16 +475,16 @@ function visualizeSentimentIntensity(data) {
         .attr("width", x.bandwidth())
         .attr("y", d => y(Math.max(0, d)))
         .attr("height", d => Math.abs(y(d) - y(0)))
-        .attr("fill", d => d >= 0 ? "#4caf50" : "#f44336");
+        .attr("fill", d => d >= 0 ? '#198754' : '#dc3545'); // Bootstrap success and danger colors
 
-    // Add legend
+    // Add legend inside the SVG but within the container width
     const legendData = [
-        { label: "Positive", color: "#4caf50" },
-        { label: "Negative", color: "#f44336" }
+        { label: "Positive", color: "#198754" },
+        { label: "Negative", color: "#dc3545" }
     ];
 
-    const legend = svg.append("g")
-        .attr("transform", `translate(${width + margin.left + 20}, ${margin.top})`);
+    const legend = chartArea.append("g")
+        .attr("transform", `translate(${chartAreaWidth + 20}, ${20})`);
 
     legend.selectAll(".legend-item")
         .data(legendData)
@@ -507,35 +502,37 @@ function visualizeSentimentIntensity(data) {
                 .attr("x", 24)
                 .attr("y", 14)
                 .text(d => d.label)
-                .style("font-size", 14);
+                .style("font-size", 14)
+                .attr("dy", ".35em");
         });
 }
-
 
 // Function to visualize sentiment distribution using a histogram
 function visualizeSentimentDistribution(data) {
     const compoundScores = data.sentences.map(sentence => sentence.analysis.compound);
 
-    // Set dimensions
-    const width = 700;
-    const height = 400;
-    const margin = { top: 20, right: 50, bottom: 70, left: 70 };
+    // Get container dimensions
+    const container = document.getElementById('sentimentDistribution');
+    const width = container.offsetWidth;
+    const height = 300;
+    const margin = { top: 20, right: 20, bottom: 70, left: 70 };
 
     // Remove existing SVG
     d3.select("#sentimentDistribution").selectAll("*").remove();
 
     const svg = d3.select("#sentimentDistribution")
         .append("svg")
-        .attr("width", width + margin.left + margin.right)
+        .attr("width", width)
         .attr("height", height + margin.top + margin.bottom);
 
+    const chartAreaWidth = width - margin.left - margin.right - 100; // Space for legend
     const chartArea = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Create x-axis scale
     const x = d3.scaleLinear()
         .domain([-1, 1])  // Sentiment scores range
-        .range([0, width]);
+        .range([0, chartAreaWidth]);
 
     // Generate histogram data
     const histogram = d3.histogram()
@@ -554,7 +551,7 @@ function visualizeSentimentDistribution(data) {
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x))
         .append("text")
-        .attr("x", width / 2)
+        .attr("x", chartAreaWidth / 2)
         .attr("y", 50)
         .attr("fill", "#000")
         .style("font-size", "14px")
@@ -580,26 +577,26 @@ function visualizeSentimentDistribution(data) {
         .append("rect")
         .attr("x", d => x(d.x0) + 1)
         .attr("y", d => y(d.length))
-        .attr("width", d => x(d.x1) - x(d.x0) - 2)
+        .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 2))
         .attr("height", d => height - y(d.length))
-        .style("fill", "#69b3a2");
+        .style("fill", "#0d6efd"); // Bootstrap primary color
 
-    // Add legend
-    const legend = svg.append("g")
-        .attr("transform", `translate(${width + margin.left + 20}, ${margin.top})`);
+    // Add legend inside the SVG but within the container width
+    const legend = chartArea.append("g")
+        .attr("transform", `translate(${chartAreaWidth + 20}, ${20})`);
 
     legend.append("rect")
         .attr("width", 18)
         .attr("height", 18)
-        .attr("fill", "#69b3a2");
+        .attr("fill", "#0d6efd");
 
     legend.append("text")
         .attr("x", 24)
         .attr("y", 14)
         .text("Sentiment Distribution")
-        .style("font-size", 14);
+        .style("font-size", 14)
+        .attr("dy", ".35em");
 }
-
 
 // Function to visualize emotional shifts using a stacked area chart
 function visualizeEmotionalShifts(data) {
@@ -620,29 +617,31 @@ function visualizeEmotionalShifts(data) {
     const stack = d3.stack().keys(emotionTypes);
     const stackedData = stack(emotionData);
 
-    // Set dimensions
-    const width = 700;
-    const height = 400;
-    const margin = { top: 20, right: 120, bottom: 70, left: 70 };
+    // Get container dimensions
+    const container = document.getElementById('emotionalShifts');
+    const width = container.offsetWidth;
+    const height = 300;
+    const margin = { top: 20, right: 20, bottom: 70, left: 70 };
 
     // Remove existing SVG
     d3.select("#emotionalShifts").selectAll("*").remove();
 
     const svg = d3.select("#emotionalShifts")
         .append("svg")
-        .attr("width", width + margin.left + margin.right)
+        .attr("width", width)
         .attr("height", height + margin.top + margin.bottom);
 
+    const chartAreaWidth = width - margin.left - margin.right - 100; // Space for legend
     const chartArea = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Create scales
     const x = d3.scaleLinear()
         .domain([1, sentences.length])
-        .range([0, width]);
+        .range([0, chartAreaWidth]);
 
     const y = d3.scaleLinear()
-        .domain([0, emotionTypes.length])  // Maximum possible sum
+        .domain([0, d3.max(stackedData[stackedData.length - 1], d => d[1])]) // Adjusted to actual max value
         .range([height, 0]);
 
     // Create color scale
@@ -655,7 +654,7 @@ function visualizeEmotionalShifts(data) {
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x).ticks(10))
         .append("text")
-        .attr("x", width / 2)
+        .attr("x", chartAreaWidth / 2)
         .attr("y", 50)
         .attr("fill", "#000")
         .style("font-size", "14px")
@@ -664,7 +663,7 @@ function visualizeEmotionalShifts(data) {
 
     // Add Y axis
     chartArea.append("g")
-        .call(d3.axisLeft(y).ticks(emotionTypes.length))
+        .call(d3.axisLeft(y))
         .append("text")
         .attr("transform", "rotate(-90)")
         .attr("x", -height / 2)
@@ -687,9 +686,9 @@ function visualizeEmotionalShifts(data) {
             .y1(d => y(d[1]))
         );
 
-    // Add legend
-    const legend = svg.append("g")
-        .attr("transform", `translate(${width + margin.left + 20}, ${margin.top})`);
+    // Add legend inside the SVG but within the container width
+    const legend = chartArea.append("g")
+        .attr("transform", `translate(${chartAreaWidth + 20}, ${20})`);
 
     legend.selectAll(".legend-item")
         .data(emotionTypes)
@@ -707,38 +706,10 @@ function visualizeEmotionalShifts(data) {
                 .attr("x", 24)
                 .attr("y", 14)
                 .text(d => d)
-                .style("font-size", 14);
+                .style("font-size", 14)
+                .attr("dy", ".35em");
         });
 }
-
-
-// Function to redo the analysis
-function redoAnalysis() {
-    document.getElementById('sentenceInput').value = '';
-    d3.selectAll("svg").remove();
-    document.getElementById('summaryText').textContent = '';
-    document.getElementById('uploadMessage').classList.add('hidden');
-
-    // Clear NER visualization
-    const entitiesContainer = document.getElementById('entities');
-    entitiesContainer.innerHTML = '';
-
-    // Hide the results section
-    document.querySelector('.result-section').classList.add('hidden');
-
-    // Reset speech recognition state
-    if (recognition && recognizing) {
-        recognition.stop();
-        recognizing = false;
-        const speakButton = document.getElementById("speakButton");
-        speakButton.innerText = "🎤 Speak";
-        speakButton.disabled = false;
-    }
-}
-
-
-
-
 
 // Function to visualize Named Entities in a table format
 function visualizeEntities(data) {
@@ -750,7 +721,7 @@ function visualizeEntities(data) {
 
     // Create table
     const table = document.createElement('table');
-    table.classList.add('entities-table');
+    table.classList.add('entities-table', 'table', 'table-striped', 'table-bordered');
 
     // Create table header
     const thead = document.createElement('thead');
@@ -820,84 +791,34 @@ function visualizeEntities(data) {
     entitiesContainer.appendChild(table);
 }
 
-
-// Function to visualize emotion intensity as a temperature scale
-function visualizeEmotionIntensity(requestId) {
-    fetch(`/emotion_intensity/${requestId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                console.error(data.error);
-                return;
-            }
-
-            // Prepare data
-            const emotions = Object.keys(data);
-            const intensities = Object.values(data);
-
-            // Map data into an array of objects
-            const emotionData = emotions.map((emotion, index) => ({
-                emotion: emotion,
-                intensity: intensities[index]
-            }));
-
-            // Visualize using D3.js
-            renderTemperatureScale(emotionData);
-        })
-        .catch(error => console.error('Error fetching emotion intensity:', error));
+// Function to show toast notifications
+function showToast(message) {
+    document.getElementById('toastBody').innerText = message;
+    const toastElement = document.getElementById('liveToast');
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
 }
 
-// Function to render the temperature scale visualization
-function renderTemperatureScale(emotionData) {
-    // Remove any existing visualization
-    d3.select("#emotionIntensityScale").selectAll("*").remove();
+// Function to redo the analysis
+function redoAnalysis() {
+    document.getElementById('sentenceInput').value = '';
+    d3.selectAll("svg").remove();
+    document.getElementById('summaryText').textContent = '';
+    document.getElementById('uploadMessage').classList.add('d-none');
 
-    // Set dimensions
-    const width = 600;
-    const barHeight = 30;
-    const height = barHeight * emotionData.length;
+    // Clear NER visualization
+    const entitiesContainer = document.getElementById('entities');
+    entitiesContainer.innerHTML = '';
 
-    const svg = d3.select("#emotionIntensityScale")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
+    // Hide the results section
+    document.querySelector('.results-section').classList.add('d-none');
 
-    // Define scales
-    const xScale = d3.scaleLinear()
-        .domain([0, 1])  // Intensity values are between 0 and 1
-        .range([0, width - 150]);  // Leave space for labels
-
-    // Define color scale (from cool to warm colors)
-    const colorScale = d3.scaleLinear()
-        .domain([0, 1])
-        .range(["#ADD8E6", "#FF4500"]);  // Light blue to orange-red
-
-    // Create bars
-    const bars = svg.selectAll("g")
-        .data(emotionData)
-        .enter()
-        .append("g")
-        .attr("transform", (d, i) => `translate(150, ${i * barHeight})`);  // Leave space for labels
-
-    bars.append("rect")
-        .attr("width", d => xScale(d.intensity))
-        .attr("height", barHeight - 5)
-        .attr("fill", d => colorScale(d.intensity));
-
-    // Add emotion labels
-    bars.append("text")
-        .attr("x", -10)
-        .attr("y", barHeight / 2)
-        .attr("dy", ".35em")
-        .attr("text-anchor", "end")
-        .text(d => d.emotion);
-
-    // Add intensity labels at the end of bars
-    bars.append("text")
-        .attr("x", d => xScale(d.intensity) + 5)
-        .attr("y", barHeight / 2)
-        .attr("dy", ".35em")
-        .attr("text-anchor", "start")
-        .text(d => (d.intensity * 100).toFixed(1) + "%");
+    // Reset speech recognition state
+    if (recognition && recognizing) {
+        recognition.stop();
+        recognizing = false;
+        const speakButton = document.getElementById("speakButton");
+        speakButton.innerText = "🎤 Speak";
+        speakButton.disabled = false;
+    }
 }
-
