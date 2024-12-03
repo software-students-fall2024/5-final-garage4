@@ -158,6 +158,7 @@ function displaySummary(data) {
     document.getElementById('summaryText').textContent = data.summary;
 }
 
+
 // Function to visualize topics using a word cloud
 function visualizeTopics(data) {
     const topics = data.topics;
