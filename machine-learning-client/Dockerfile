@@ -4,6 +4,14 @@ FROM python:3.10-slim
 # Set the working directory in the container
 WORKDIR /app
 
+# Install essential build tools (compiler, linker, and make utility) for compiling dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+ && rm -rf /var/lib/apt/lists/*
+ 
 # Copy the requirements file into the container
 COPY requirements.txt requirements.txt
 
