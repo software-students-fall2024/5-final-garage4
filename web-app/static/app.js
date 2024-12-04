@@ -133,8 +133,19 @@ function fetchAnalysisWithRetry(requestId, retries) {
     }, 5000);  // Retry interval set to 5 seconds
 }
 
+function updateGeneratePdfButton(requestId) {
+    const generatePdfButton = document.getElementById("generatePdfButton");
+    if (generatePdfButton) {
+        generatePdfButton.href = `/send_pdf/${requestId}`;
+        generatePdfButton.style.display = "inline-block"; // Make sure the button is visible
+    }
+}
+
 // Function to visualize all results
 function visualizeResults(data) {
+    window.request_id = data.request_id;
+    document.querySelector('.results-section').classList.remove('d-none');
+    updateGeneratePdfButton(window.request_id);
     // Hide the upload message and loading spinner
     document.getElementById('uploadMessage').classList.add('d-none');
     document.getElementById('loadingSpinner').classList.add('d-none');
@@ -151,7 +162,10 @@ function visualizeResults(data) {
     visualizeSentimentDistribution(data);
     visualizeEmotionalShifts(data);
     visualizeEntities(data);
+
+    window.graphsRendered = true;
 }
+
 
 // Function to display the summary text
 function displaySummary(data) {
