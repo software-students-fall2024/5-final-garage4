@@ -62,5 +62,8 @@ jobs:
             python -m nltk.downloader punkt punkt_tab
         env:
             NLTK_DATA: /home/runner/nltk_data
+      - name: Install spaCy model
+        run: |
+              python -m spacy download en_core_web_sm-3.7.0
         
       
