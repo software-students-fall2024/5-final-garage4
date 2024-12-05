@@ -28,7 +28,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from wordcloud import WordCloud
-
+from werkzeug.exceptions import BadRequest  # Import BadRequest
 
 
 app = Flask(__name__)
@@ -48,7 +48,10 @@ def index():
     """Render the index page."""
     return render_template("index.html")
 
-
+# Custom error handler for BadRequest
+@app.errorhandler(BadRequest)
+def handle_bad_request(e):
+    return jsonify({"error": "Invalid input data."}), 400
 
 @app.route("/checkSentiment", methods=["POST"])
 def submit_sentence():

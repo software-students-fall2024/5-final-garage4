@@ -232,12 +232,15 @@ def test_submit_sentence_db_error(mock_insert, test_client):
 
 def test_submit_sentence_invalid_data(test_client):
     """Test if the /checkSentiment route handles invalid data correctly."""
-    response = test_client.post("/checkSentiment", data="not json", content_type="application/json")
+    response = test_client.post(
+        "/checkSentiment",
+        data="not json",
+        content_type="application/json"
+    )
     assert response.status_code == 400
     response_data = response.get_json()
     print("Response Data:", response_data)  # Debugging line
     assert response_data["error"] == "Invalid input data."
-
 
 @patch("app.collection.find_one")
 def test_get_analysis_in_progress(mock_find, test_client):
