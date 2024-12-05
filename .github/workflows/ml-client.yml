@@ -52,10 +52,6 @@ jobs:
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-      - name: Deploy to DigitalOcean App Platform
-        run: |
-          # Deploy to DigitalOcean using doctl
-          doctl apps create --spec app.yaml || doctl apps update ${{ secrets.DO_APP_ID }} --spec app.yaml
           
       - name: Install Pipenv
         run: |
