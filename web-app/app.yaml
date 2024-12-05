@@ -1,0 +1,13 @@
+name: web-app
+services:
+  - name: web
+    dockerfile_path: web-app/Dockerfile
+    source_dir: web-app
+    http_port: 5000
+    routes:
+      - path: /
+    environment_slug: docker
+    envs:
+      - key: MONGO_URI
+        scope: RUN_AND_BUILD_TIME
+        value: your_mongo_uri_here
