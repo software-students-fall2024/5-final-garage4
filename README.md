@@ -79,3 +79,10 @@ ___7. Go to Docker Desktop, click on the 5000:5000 port to run the webpage___
 [machine-learning-client](https://hub.docker.com/r/imyhalex/machine-learning-client)
 
 [web-app](https://hub.docker.com/r/imyhalex/web-app)
+
+## Digital Ocean
+
+website url:
+```text
+http://104.131.13.180:5000/
+```
