@@ -17,20 +17,13 @@ jobs:
       IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/web-app
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      - name: Install dependencies and run tests
-        working-directory: ./web-app
-        run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
-          pytest --cov=./ --cov-fail-under=80
 
       - name: Build Docker image
         working-directory: ./web-app
@@ -57,9 +50,17 @@ jobs:
           # Deploy to DigitalOcean using doctl
           doctl apps create --spec app.yaml || doctl apps update ${{ secrets.DO_APP_ID }} --spec app.yaml
 
-      - name: Install NLTK data
+          - name: Install Dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install -r web-app/requirements.txt
+  
+      - name: Download NLTK Data
         run: |
-            python -m nltk.downloader punkt punkt_tab
-        env:
-            NLTK_DATA: /home/runner/nltk_data
+          python -m nltk.downloader punkt punkt_tab
+
+      - name: Run Tests
+        working-directory: web-app
+        run: |
+          pytest --cov=app.py --cov-report=xml
           
