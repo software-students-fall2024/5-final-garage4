@@ -6,6 +6,8 @@ import os
 from unittest.mock import patch, MagicMock
 import pytest
 import nltk
+from bson import ObjectId
+from datetime import datetime
 
 from app import (
     perform_sentiment_analysis,
@@ -16,6 +18,7 @@ from app import (
     perform_overall_emotion_detection,
     process_document,
     perform_ner,
+    update_document_in_db,
 )
 
 def test_perform_ner():
@@ -245,3 +248,183 @@ def test_process_document(sample_sentences_large_fixture):  # pylint: disable=W0
         assert (
             "overall_emotions" in processed_document
         ), "Missing 'overall_emotions' in the processed document"
+
+def test_update_document_in_db():
+    """Test updating a document in the database."""
+    sample_document = {
+        "_id": ObjectId("507f1f77bcf86cd799439011"),
+        "sentences": [
+            {"sentence": "I am happy.", "analysis": {"compound": 0.5}, "emotions": ["Happy"], "entities": []},
+            {"sentence": "I am sad.", "analysis": {"compound": -0.5}, "emotions": ["Sad"], "entities": []}
+        ],
+        "overall_status": "processed",
+        "topics": ["Topic1", "Topic2"],
+        "summary": "This is a summary.",
+        "sentiment_trend": [{"sentence_index": 0, "compound": 0.5}, {"sentence_index": 1, "compound": -0.5}],
+        "overall_emotions": ["Happy"],
+        "timestamp": datetime.now()
+    }
+
+    with patch('app.texts_collection.update_one') as mock_update:
+        update_document_in_db(sample_document)
+        mock_update.assert_called_once_with(
+            {"_id": sample_document["_id"]},
+            {"$set": {
+                "sentences": sample_document["sentences"],
+                "overall_status": sample_document["overall_status"],
+                "topics": sample_document["topics"],
+                "summary": sample_document["summary"],
+                "sentiment_trend": sample_document["sentiment_trend"],
+                "overall_emotions": sample_document["overall_emotions"],
+                "timestamp": sample_document["timestamp"],
+            }}
+        )
+
+def test_perform_topic_modeling_no_sentences():
+    """Test topic modeling with no sentences."""
+    result = perform_topic_modeling([], num_topics=5)
+    assert result == [], "Expected an empty list when no sentences are provided."
+
+def test_perform_topic_modeling_with_valid_data(sample_sentences_large_fixture):
+    """Test topic modeling with valid data, ensuring mocks return appropriate values."""
+    # Mock external dependencies if necessary
+    with patch('app.corpora.Dictionary') as mock_dictionary:
+        mock_dict = MagicMock()
+        mock_dict.__len__.return_value = 10  # Ensure dictionary length is non-zero
+        mock_dict.doc2bow.return_value = [(0, 1), (1, 2)]
+        mock_dictionary.return_value = mock_dict
+
+        with patch('app.models.LdaModel') as mock_lda_model:
+            mock_lda = MagicMock()
+            mock_lda.print_topics.return_value = [
+                (0, "0.1*'word1' + 0.09*'word2'"),
+                (1, "0.08*'word3' + 0.07*'word4'")
+            ]
+            mock_lda_model.return_value = mock_lda
+
+            topics = perform_topic_modeling(sample_sentences_large_fixture, num_topics=2)
+            assert isinstance(topics, list)
+            assert len(topics) == 2
+            assert isinstance(topics[0], tuple)
+            assert isinstance(topics[1], tuple)
+            mock_dictionary.assert_called_once()
+            mock_lda_model.assert_called_once()
+            mock_lda.print_topics.assert_called_once_with(num_words=4)
+
+
+
+def test_update_document_in_db_processed():
+    """Test updating a document with 'processed' status."""
+    sample_document = {
+        "_id": ObjectId("507f1f77bcf86cd799439011"),
+        "sentences": [
+            {"sentence": "I am happy.", "analysis": {"compound": 0.5}, "emotions": ["Happy"], "entities": []},
+            {"sentence": "I am sad.", "analysis": {"compound": -0.5}, "emotions": ["Sad"], "entities": []}
+        ],
+        "overall_status": "processed",
+        "topics": ["Topic1", "Topic2"],
+        "summary": "This is a summary.",
+        "sentiment_trend": [{"sentence_index": 0, "compound": 0.5}, {"sentence_index": 1, "compound": -0.5}],
+        "overall_emotions": ["Happy"],
+        "timestamp": datetime.now()
+    }
+
+    with patch('app.texts_collection.update_one') as mock_update:
+        update_document_in_db(sample_document)
+        mock_update.assert_called_once_with(
+            {"_id": sample_document["_id"]},
+            {"$set": {
+                "sentences": sample_document["sentences"],
+                "overall_status": sample_document["overall_status"],
+                "topics": sample_document["topics"],
+                "summary": sample_document["summary"],
+                "sentiment_trend": sample_document["sentiment_trend"],
+                "overall_emotions": sample_document["overall_emotions"],
+                "timestamp": sample_document["timestamp"],
+            }}
+        )           
+
+def test_perform_topic_modeling_empty_sentences():
+    """Test topic modeling with empty sentences."""
+    result = perform_topic_modeling([], num_topics=5)
+    assert result == [], "Expected an empty list when empty sentences are provided."
+
+def test_perform_sentiment_analysis_neutral():
+    """Test sentiment analysis with a neutral sentence."""
+    sample_sentences = [
+        {
+            "sentence": "The sky is blue.",
+            "status": "pending",
+            "analysis": None,
+        }
+    ]
+    result = perform_sentiment_analysis(sample_sentences)
+    assert result[0]["analysis"]["compound"] == 0.0  # Assuming neutral compound score
+    assert result[0]["status"] == "processed"
+
+def test_perform_topic_modeling_valid_data(sample_sentences_large_fixture):
+    """Test topic modeling with valid data."""
+    topics = perform_topic_modeling(sample_sentences_large_fixture, num_topics=2)
+    assert isinstance(topics, list)
+    assert len(topics) == 2
+    for topic in topics:
+        assert isinstance(topic, tuple)
+        assert isinstance(topic[0], int)
+        assert isinstance(topic[1], str)
+
+@pytest.fixture
+def sample_document_processed():
+    return {
+        "_id": ObjectId("507f1f77bcf86cd799439011"),
+        "request_id": "unique_request_id",
+        "sentences": [
+            {"sentence": "I am happy.", "analysis": {"compound": 0.5}, "emotions": ["Happy"], "entities": []},
+            {"sentence": "I am sad.", "analysis": {"compound": -0.5}, "emotions": ["Sad"], "entities": []}
+        ],
+        "overall_status": "processed",
+        "topics": ["Topic1", "Topic2"],
+        "summary": "This is a summary.",
+        "sentiment_trend": [{"sentence_index": 0, "compound": 0.5}, {"sentence_index": 1, "compound": -0.5}],
+        "overall_emotions": ["Happy"],
+        "timestamp": datetime.now()
+    }
+
+def test_update_document_in_db_error():
+    """Test updating a document when the database update fails."""
+    sample_document = {
+        "_id": ObjectId("507f1f77bcf86cd799439011"),
+        "overall_status": "processed",
+        "timestamp": datetime.now(),
+    }
+
+    with patch('app.texts_collection.update_one', side_effect=Exception("Database Error")) as mock_update:
+        with pytest.raises(Exception) as excinfo:
+            update_document_in_db(sample_document)
+        assert "Database Error" in str(excinfo.value)
+        mock_update.assert_called_once()
+
+def test_process_document_no_sentences():
+    """Test processing a document with no sentences."""
+    sample_document = {
+        "_id": "1234567890",
+        "request_id": "unique_request_id",
+        "sentences": [],
+        "overall_status": "pending",
+        "timestamp": "2024-11-13T04:00:00",
+    }
+    processed_document = process_document(sample_document)
+    assert processed_document["overall_status"] == "error"
+    assert "error_message" in processed_document
+    assert processed_document["error_message"] == "No sentences to process."
+
+def test_perform_ner_no_entities():
+    """Test the NER function with sentences that have no named entities."""
+    sample_sentences = [
+        {"sentence": "This is a test sentence without entities."},
+        {"sentence": "Another simple sentence."}
+    ]
+    result = perform_ner(sample_sentences)
+    assert len(result) == 2
+    assert "entities" in result[0]
+    assert result[0]["entities"] == []
+    assert result[1]["entities"] == []
