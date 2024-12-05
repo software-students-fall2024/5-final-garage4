@@ -1,0 +1,15 @@
+name: web-app
+services:
+  - name: web-app-service
+    image:
+      registry_type: DOCKER_HUB
+      registry: docker.io
+      repository: ryomanagano/web-app
+      tag: latest
+    envs:
+      - key: MONGO_URI
+        scope: RUN_AND_BUILD_TIME
+        value: mongodb://mongo:27017/
+    http_port: 5000
+    routes:
+      - path: /
