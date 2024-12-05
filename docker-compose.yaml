@@ -10,7 +10,7 @@ services:
       - mongodb_data:/data/db  # Persist MongoDB data using Docker volumes
 
   web_app:
-    build: ./web-app  # Path to Dockerfile for web-app
+    build: imyhalex/web-app:latest  # Path to Dockerfile for web-app
     container_name: web_app
     ports:
       - "5000:5000"  # Map Flask web server to the host
@@ -20,7 +20,7 @@ services:
       - mongodb  # Wait for MongoDB before starting
 
   ml_client:
-    build: ./machine-learning-client  # Path to Dockerfile for machine-learning-client
+    build: imyhalex/machine-learning-client:latest  # Path to Dockerfile for machine-learning-client
     container_name: ml_client
     environment:
       - MONGO_URI=mongodb://mongodb:27017/  # MongoDB connection URI
