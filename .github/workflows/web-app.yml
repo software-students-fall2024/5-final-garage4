@@ -58,5 +58,6 @@ jobs:
       - name: Run Tests
         working-directory: web-app
         run: |
-          pytest --cov=app.py --cov-report=xml
+          pytest --cov=app --cov-fail-under=80 --cov-report=xml
+
           

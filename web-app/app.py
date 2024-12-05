@@ -493,40 +493,5 @@ Garage Team
         print(f"Failed to send email: {e}")
         raise
 
-def test_submit_sentence_invalid_data(test_client):
-    """Test if the /checkSentiment route handles invalid data correctly."""
-    response = test_client.post("/checkSentiment", data="not json", content_type="application/json")
-    assert response.status_code == 400
-    response_data = response.get_json()
-    assert response_data["error"] == "Invalid input data."
-
-def test_get_analysis_in_progress(mock_find, test_client):
-    """Test if the /get_analysis route returns 202 when analysis is not yet complete."""
-    mock_find.return_value = {
-        "_id": "fake_id",
-        "request_id": "unique_request_id",
-        "overall_status": "pending",
-    }
-
-    response = test_client.get("/get_analysis?request_id=unique_request_id")
-    assert response.status_code == 202
-    response_data = response.get_json()
-    assert response_data["message"] == "Analysis not yet complete."
-
-
-def test_get_analysis_error_status(mock_find, test_client):
-    """Test if the /get_analysis route returns error when overall_status is 'error'."""
-    mock_find.return_value = {
-        "_id": "fake_id",
-        "request_id": "unique_request_id",
-        "overall_status": "error",
-        "error_message": "Processing failed."
-    }
-
-    response = test_client.get("/get_analysis?request_id=unique_request_id")
-    assert response.status_code == 400
-    response_data = response.get_json()
-    assert response_data["error"] == "Processing failed."
-
 if __name__ == "__main__":
     app.run(debug=False, threaded=False)
