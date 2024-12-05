@@ -12,6 +12,7 @@ import datetime
 from unittest.mock import patch
 from app import send_email_with_pdf
 from datetime import datetime
+import warnings
 
 # Test the index route
 def test_index(test_client):
@@ -286,6 +287,9 @@ def test_generate_plots():
             (0, '0.1*"test"+0.2*"example"'),
         ]
     }
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=DeprecationWarning)
+        images = generate_plots(document)
 
     images = generate_plots(document)
     assert isinstance(images, dict)
