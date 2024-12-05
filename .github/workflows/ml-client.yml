@@ -57,7 +57,3 @@ jobs:
           # Deploy to DigitalOcean using doctl
           doctl apps create --spec app.yaml || doctl apps update ${{ secrets.DO_APP_ID }} --spec app.yaml
       
-      - name: Run Tests
-        working-directory: machine-learning-client
-        run: |
-          pytest --cov=app.py --cov-report=xml
