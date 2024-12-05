@@ -16,6 +16,8 @@ Build a containerized app that uses machine learning. See [instructions](./instr
 
 The `AI Sentence Checker` is a containerized system designed to provide an intuitive interface for analyzing the sentiment or emotion within a user-provided text. This project combines machine learning, web development, and data visualization.
 
+
+
 #### NOTE:
 This project uses keyboard and microphone as sensors to detect user input text. There is a sample [`speech.txt`](https://github.com/software-students-fall2024/4-containers-garage3/blob/main/speech1.txt) and [`speech1.txt`](https://github.com/software-students-fall2024/4-containers-garage3/blob/main/speech.txt) and you can copy and paste them into the input text box to have a quick look. Otherwise you need type in or find a source text that is more than 300 words to ensure you get the analyze result from ml client.
 
@@ -71,5 +73,7 @@ $ docker-compose down
 ```
 ___7. Go to Docker Desktop, click on the 5000:5000 port to run the webpage___
 
-## Task boards
-- [Task board for our team](https://github.com/orgs/software-students-fall2024/projects/96)
+## Docker Hub Images
+[machine-learning-client](https://hub.docker.com/r/imyhalex/machine-learning-client)
+
+[web-app](https://hub.docker.com/r/imyhalex/web-app)
