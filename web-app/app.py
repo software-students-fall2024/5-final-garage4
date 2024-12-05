@@ -29,6 +29,8 @@ from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from wordcloud import WordCloud
 
+
+
 app = Flask(__name__)
 
 # Download NLTK data for sentence tokenization
@@ -45,6 +47,7 @@ matplotlib.use('Agg')
 def index():
     """Render the index page."""
     return render_template("index.html")
+
 
 
 @app.route("/checkSentiment", methods=["POST"])
@@ -85,7 +88,7 @@ def submit_sentence():
         # Insert into MongoDB
         result = collection.insert_one(document)
         print("Inserted Document ID:", result.inserted_id)
-    except errors.PyMongoError as e:
+    except Exception as e:
         print(f"Error inserting document: {e}")
         return jsonify({"error": "Database insertion error."}), 500
 
