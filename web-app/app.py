@@ -54,6 +54,8 @@ def submit_sentence():
     and store them in MongoDB with a unique request_id.
     """
     data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid input data."}), 400
     paragraph = data.get("sentence", "").strip()
 
     if not paragraph:
@@ -409,10 +411,13 @@ def view_results(request_id):
     # Generate absolute URLs for static files
     static_url = url_for('static', filename='', _external=True)
 
-    return render_template("results.html", data=document, static_url=static_url)
+    return render_template("index.html", data=document, static_url=static_url)
 
 @app.route("/send_pdf/<string:request_id>", methods=["GET", "POST"])
 def send_pdf(request_id):
+    document = collection.find_one({"request_id": request_id})
+    if not document or document.get("overall_status") != "processed":
+        return "Results not available.", 404
     if request.method == "POST":
         email = request.form.get("email")
         if not email:
@@ -481,6 +486,41 @@ Garage Team
     except Exception as e:
         print(f"Failed to send email: {e}")
         raise
+
+def test_submit_sentence_invalid_data(test_client):
+    """Test if the /checkSentiment route handles invalid data correctly."""
+    response = test_client.post("/checkSentiment", data="not json", content_type="application/json")
+    assert response.status_code == 400
+    response_data = response.get_json()
+    assert response_data["error"] == "Invalid input data."
+
+def test_get_analysis_in_progress(mock_find, test_client):
+    """Test if the /get_analysis route returns 202 when analysis is not yet complete."""
+    mock_find.return_value = {
+        "_id": "fake_id",
+        "request_id": "unique_request_id",
+        "overall_status": "pending",
+    }
+
+    response = test_client.get("/get_analysis?request_id=unique_request_id")
+    assert response.status_code == 202
+    response_data = response.get_json()
+    assert response_data["message"] == "Analysis not yet complete."
+
+
+def test_get_analysis_error_status(mock_find, test_client):
+    """Test if the /get_analysis route returns error when overall_status is 'error'."""
+    mock_find.return_value = {
+        "_id": "fake_id",
+        "request_id": "unique_request_id",
+        "overall_status": "error",
+        "error_message": "Processing failed."
+    }
+
+    response = test_client.get("/get_analysis?request_id=unique_request_id")
+    assert response.status_code == 400
+    response_data = response.get_json()
+    assert response_data["error"] == "Processing failed."
 
 if __name__ == "__main__":
     app.run(debug=False, threaded=False)
