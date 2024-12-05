@@ -1,0 +1,12 @@
+name: ml-client
+services:
+  - name: ml-client-service
+    image:
+      registry_type: DOCKER_HUB
+      registry: docker.io
+      repository: ryomanagano/ml-client
+      tag: latest
+    envs:
+      - key: MONGO_URI
+        scope: RUN_AND_BUILD_TIME
+        value: mongodb://mongo:27017/

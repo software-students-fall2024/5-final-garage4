@@ -28,6 +28,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from wordcloud import WordCloud
+from werkzeug.exceptions import BadRequest  # Import BadRequest
+
 
 app = Flask(__name__)
 
@@ -46,6 +48,10 @@ def index():
     """Render the index page."""
     return render_template("index.html")
 
+# Custom error handler for BadRequest
+@app.errorhandler(BadRequest)
+def handle_bad_request(e):
+    return jsonify({"error": "Invalid input data."}), 400
 
 @app.route("/checkSentiment", methods=["POST"])
 def submit_sentence():
@@ -54,6 +60,8 @@ def submit_sentence():
     and store them in MongoDB with a unique request_id.
     """
     data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid input data."}), 400
     paragraph = data.get("sentence", "").strip()
 
     if not paragraph:
@@ -83,7 +91,7 @@ def submit_sentence():
         # Insert into MongoDB
         result = collection.insert_one(document)
         print("Inserted Document ID:", result.inserted_id)
-    except errors.PyMongoError as e:
+    except Exception as e:
         print(f"Error inserting document: {e}")
         return jsonify({"error": "Database insertion error."}), 500
 
@@ -409,10 +417,13 @@ def view_results(request_id):
     # Generate absolute URLs for static files
     static_url = url_for('static', filename='', _external=True)
 
-    return render_template("results.html", data=document, static_url=static_url)
+    return render_template("index.html", data=document, static_url=static_url)
 
 @app.route("/send_pdf/<string:request_id>", methods=["GET", "POST"])
 def send_pdf(request_id):
+    document = collection.find_one({"request_id": request_id})
+    if not document or document.get("overall_status") != "processed":
+        return "Results not available.", 404
     if request.method == "POST":
         email = request.form.get("email")
         if not email:
