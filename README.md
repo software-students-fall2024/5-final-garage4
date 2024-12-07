@@ -76,7 +76,7 @@ $ docker-compose down
 ___7. Go to Docker Desktop, click on the 5000:5000 port to run the webpage___
 
 ## Docker Hub Images
-[machine-learning-client](https://hub.docker.com/r/imyhalex/machine-learning-client)
+[machine-learning-client](https://hub.docker.com/r/imyhalex/ml-client)
 
 [web-app](https://hub.docker.com/r/imyhalex/web-app)
 
