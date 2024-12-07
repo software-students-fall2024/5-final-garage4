@@ -1,15 +1,11 @@
 # use the Python image as a base - version Python 3.10
-FROM python:3.10-slim
+FROM python:3.10-bullseye
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
-    ca-certificates && \
-    echo "deb http://deb.debian.org/debian bullseye main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian-security bullseye-security main contrib non-free" >> /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian bullseye-updates main contrib non-free" >> /etc/apt/sources.list && \
-    apt-get update && apt-get install -y \
+    ca-certificates \
     fonts-liberation \
     libasound2 \
     libatk-bridge2.0-0 \
