@@ -5,13 +5,11 @@ on:
     branches: [main, master]
     paths:
       - 'web-app/**'
-      - 'docker-compose.yaml'
       - '.github/workflows/**'
   pull_request:
     branches: [main, master]
     paths:
       - 'web-app/**'
-      - 'docker-compose.yaml'
       - '.github/workflows/**'
 
 jobs:
