@@ -22,7 +22,7 @@ services:
     restart: always
 
   ml_client:
-    build: imyhalex/machine-learning-client:latest  # Path to Dockerfile for machine-learning-client
+    build: imyhalex/ml-client:latest  # Path to Dockerfile for machine-learning-client
     container_name: ml_client
     environment:
       - MONGO_URI=mongodb://mongodb:27017/  # MongoDB connection URI
