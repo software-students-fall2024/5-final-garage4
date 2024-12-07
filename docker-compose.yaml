@@ -8,6 +8,7 @@ services:
       - "27017:27017"  # Expose MongoDB port to the host
     volumes:
       - mongodb_data:/data/db  # Persist MongoDB data using Docker volumes
+    restart: always
 
   web_app:
     build: imyhalex/web-app:latest  # Path to Dockerfile for web-app
@@ -18,6 +19,7 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/  # MongoDB connection URI
     depends_on:
       - mongodb  # Wait for MongoDB before starting
+    restart: always
 
   ml_client:
     build: imyhalex/machine-learning-client:latest  # Path to Dockerfile for machine-learning-client
@@ -26,6 +28,7 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/  # MongoDB connection URI
     depends_on:
       - mongodb  # Wait for MongoDB before starting
+    restart: always
 
 volumes:
   mongodb_data:
