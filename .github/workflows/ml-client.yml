@@ -5,10 +5,14 @@ on:
     branches: [main, master]
     paths:
       - 'machine-learning-client/**'
+      - 'docker-compose.yaml'
+      - '.github/workflows/**'
   pull_request:
     branches: [main, master]
     paths:
       - 'machine-learning-client/**'
+      - 'docker-compose.yaml'
+      - '.github/workflows/**'
 
 jobs:
   build-test-deploy:
@@ -75,7 +79,7 @@ jobs:
           username: root
           password: ${{ secrets.DROPLET_PASSWORD }}
           script: |
-            cd /path/to/your/project
+            cd 5-final-garage4
             docker compose pull
             docker compose up -d
 
