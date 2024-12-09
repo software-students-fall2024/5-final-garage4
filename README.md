@@ -16,7 +16,7 @@ The `AI Sentence Checker` is a containerized system designed to provide an intui
 
 
 #### NOTE:
-This project uses keyboard and microphone(this function is blocked by web browser due to the http default digital ocean's `http` protocal) as sensors to detect user input text. There is a sample [`speech.txt`](https://github.com/software-students-fall2024/4-containers-garage3/blob/main/speech1.txt) and [`speech1.txt`](https://github.com/software-students-fall2024/4-containers-garage3/blob/main/speech.txt) and you can copy and paste them into the input text box to have a quick look. 
+This project uses keyboard and microphone(this functionality is blocked by web browser due to the default digital ocean's `http` protocal) as sensors to detect user input text. There is a sample [`speech.txt`](https://github.com/software-students-fall2024/4-containers-garage3/blob/main/speech1.txt) and [`speech1.txt`](https://github.com/software-students-fall2024/4-containers-garage3/blob/main/speech.txt) and you can copy and paste them into the input text box to have a quick look. 
 
 ## How to run
 
